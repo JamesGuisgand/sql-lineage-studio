@@ -1,5 +1,9 @@
-use std::{env, fs, io::{self, Read}, process};
 use sql_lineage_rs::analyze;
+use std::{
+    env, fs,
+    io::{self, Read},
+    process,
+};
 
 fn run() -> Result<(), String> {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -13,7 +17,9 @@ fn run() -> Result<(), String> {
             "--format" | "--dialect" | "--impact" => {
                 let flag = &args[index];
                 index += 1;
-                let val = args.get(index).ok_or(format!("Option {flag} sans valeur"))?;
+                let val = args
+                    .get(index)
+                    .ok_or(format!("Option {flag} sans valeur"))?;
                 match flag.as_str() {
                     "--format" => format = val,
                     "--dialect" => dialect = val,
@@ -30,11 +36,15 @@ fn run() -> Result<(), String> {
         }
         index += 1;
     }
-    if !matches!(format, "json" | "dot" | "text") { return Err("Format invalide".into()); }
+    if !matches!(format, "json" | "dot" | "text") {
+        return Err("Format invalide".into());
+    }
     let filename = filename.ok_or("Nom de fichier SQL manquant")?;
     let sql = if filename == "-" {
         let mut input = String::new();
-        io::stdin().read_to_string(&mut input).map_err(|e| e.to_string())?;
+        io::stdin()
+            .read_to_string(&mut input)
+            .map_err(|e| e.to_string())?;
         input
     } else {
         fs::read_to_string(filename).map_err(|e| e.to_string())?
@@ -42,11 +52,21 @@ fn run() -> Result<(), String> {
     let report = analyze(&sql, dialect, impact)?;
     match format {
         "dot" => print!("{}", report.dot),
-        "text" => for (i, stmt) in report.statements.iter().enumerate() {
-            println!("#{} type={} cible={} sources={}", i+1, stmt.kind,
-                     stmt.target.as_deref().unwrap_or("(aucune)"), stmt.sources.join(", "));
-        },
-        _ => println!("{}", serde_json::to_string(&report).map_err(|e| e.to_string())?),
+        "text" => {
+            for (i, stmt) in report.statements.iter().enumerate() {
+                println!(
+                    "#{} type={} cible={} sources={}",
+                    i + 1,
+                    stmt.kind,
+                    stmt.target.as_deref().unwrap_or("(aucune)"),
+                    stmt.sources.join(", ")
+                );
+            }
+        }
+        _ => println!(
+            "{}",
+            serde_json::to_string(&report).map_err(|e| e.to_string())?
+        ),
     }
     Ok(())
 }
