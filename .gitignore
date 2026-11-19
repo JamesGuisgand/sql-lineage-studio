@@ -1,0 +1,20 @@
+# Secrets and per-host configuration
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Rust, local build
+engine/target/
+target/
+
+# Deployment and downloads
+.release-state/
+*.zip
+*.tar.gz
+.DS_Store
+.vscode/

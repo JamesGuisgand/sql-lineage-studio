@@ -1,0 +1,38 @@
+name: sql-lineage-studio
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sql-lineage-studio:local
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 384m
+    pids_limit: 64
+    cpus: 1.5
+    environment:
+      PORT: "8080"
+      MAX_SQL_BYTES: "131072"
+      RUST_TIMEOUT: "8"
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.sql-lineage-studio.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.sql-lineage-studio.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.sql-lineage-studio.tls=true"
+      - "traefik.http.routers.sql-lineage-studio.tls.certresolver=${TRAEFIK_CERTRESOLVER}"
+      - "traefik.http.routers.sql-lineage-studio.service=sql-lineage-studio"
+      - "traefik.http.services.sql-lineage-studio.loadbalancer.server.port=8080"
+networks:
+  traefik-public:
+    name: ${TRAEFIK_NETWORK}
+    external: true

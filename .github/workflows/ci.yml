@@ -1,0 +1,68 @@
+name: CI · SQL Lineage Studio V2
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    name: Rust · format, tests, Clippy et binaire
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Installer Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine
+      - name: Vérifier le format Rust
+        run: cargo fmt --manifest-path engine/Cargo.toml --all -- --check
+      - name: Tests unitaires Rust
+        run: cargo test --manifest-path engine/Cargo.toml --all-targets
+      - name: Analyse Clippy (avertissements visibles)
+        run: cargo clippy --manifest-path engine/Cargo.toml --all-targets
+      - name: Construire le moteur Rust optimisé
+        run: cargo build --release --manifest-path engine/Cargo.toml
+      - name: Tests HTTP + moteur Rust réel
+        env:
+          SQL_LINEAGE_REAL_BIN: ${{ github.workspace }}/engine/target/release/sql-lineage-rs
+        run: python3 -m unittest discover -s tests -v
+
+  web:
+    name: API et interface · Python / JavaScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Syntaxe Python
+        run: python3 -m py_compile server.py scripts/benchmark.py
+      - name: Tests API HTTP (moteur simulé)
+        run: python3 -m unittest discover -s tests -p test_server.py -v
+      - name: Syntaxe JavaScript
+        run: node --check web/app.js
+
+  docker:
+    name: Image Docker · tests Rust dans le build
+    runs-on: ubuntu-latest
+    needs: [rust, web]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Construire l'image sans déployer
+        run: docker build --pull -t sql-lineage-studio:ci .

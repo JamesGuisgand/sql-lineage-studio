@@ -1,0 +1,25 @@
+# Validation isolée: ni Traefik, ni DNS, ni interruption du site existant.
+name: sql-lineage-v2-validation
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sql-lineage-studio:v2-validation
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    mem_limit: 384m
+    pids_limit: 64
+    cpus: 1.5
+    environment:
+      PORT: '8080'
+      MAX_SQL_BYTES: '131072'
+      RUST_TIMEOUT: '8'
+    ports:
+      - '127.0.0.1:18080:8080'

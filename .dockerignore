@@ -1,0 +1,13 @@
+**/.git
+**/.github
+**/__pycache__
+**/*.pyc
+**/target
+**/.env
+**/.release-state
+*.zip
+*.tar.gz
+README.md
+docs/
+tests/
+scripts/
