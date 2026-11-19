@@ -1,7 +1,9 @@
 # SQL Lineage Studio
 
-[![CI · SQL Lineage Studio V2](https://github.com/JamesGuisgand/sql-lineage-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesGuisgand/sql-lineage-studio/actions/workflows/ci.yml)
+[![CI - SQL Lineage Studio V2](https://github.com/JamesGuisgand/sql-lineage-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesGuisgand/sql-lineage-studio/actions/workflows/ci.yml)
+
 [![Rust](https://img.shields.io/badge/Rust-AST%20%2B%20SQLParser-orange)](engine/)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **Analyse statique des dépendances SQL en Rust : tables, colonnes et impact transitif, avec démonstration web.**
